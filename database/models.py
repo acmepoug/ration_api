@@ -21,6 +21,7 @@ t_connect_dish_portion = Table(
     Column("portion_id", ForeignKey("portions.id"), primary_key=True, ),
 )
 
+
 class Meal(BaseModel):
     __tablename__ = "meals"
 
@@ -47,3 +48,28 @@ class Meal(BaseModel):
             self.add_dish(item)
         elif isinstance(item, Portion):
             self.add_portion_as_dish(item)
+
+            
+class Dish(BaseModel):
+    __tablename__ = "dishes"
+
+    name = Column(String(100))
+
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, )
+    user = relationship("User", back_populates="dishes", )
+
+    meals = relationship(
+        "Meal", secondary=t_connect_meal_dish, back_populates="dishes", lazy="dynamic",
+    )
+
+    portions = relationship(
+        "Portion",
+        secondary=t_connect_dish_portion,
+        back_populates="dishes",
+        lazy="dynamic",
+    )
+
+    def add_portion(self, portion: Portion):
+        if portion not in self.portions.all():
+            self.portions.append(portion)
+
